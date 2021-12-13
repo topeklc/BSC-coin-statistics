@@ -58,7 +58,7 @@ class Token:
         res = run_query(query)
         token_amount = float(res['data']['ethereum']['address'][0]['balances'][0]['value'])
         wbnb_amount = float(res['data']['ethereum']['address'][0]['balances'][1]['value'])
-        self.market_cap = self.circulating_supply * (wbnb_amount / token_amount) * self.bnb_price
+        self.market_cap = round(self.circulating_supply * (wbnb_amount / token_amount) * self.bnb_price, 2)
 
     def get_transactions_number(self):
         query = """query unique_transfers {
@@ -82,8 +82,12 @@ class Token:
     def get_holders_number(self):
         holders = run_covalent(self.address)
         self.holders = holders['data']['pagination']['total_count']
-        self.holders_lst = [int(x['balance']) / (10 ** int(self.decimal)) for x in holders['data']['items'] if x['address'] != self.burn_address or self.lp_address]
-        print(holders['data']['items'])
+        print(holders['data']['pagination'])
+        # self.holders_lst = [int(x['balance']) / (10 ** int(self.decimal)) for x in holders['data']['items'] if x['address'] != self.burn_address or x['address'] !=  self.lp_address]
+        for x in holders['data']['items']:
+            if x['address'] != self.burn_address and x['address'] != self.lp_address:
+                self.holders_lst.append(int(x['balance']) / (10 ** int(self.decimal)))
+
 
     def get_distributed_rewards(self):
         query = """
@@ -136,9 +140,9 @@ class Token:
     def holders_analysis(self):
         one_p = [x for x in self.holders_lst if x >= self.circulating_supply / 100]
         one_p_amount = len(one_p)
-        percent_owned_by_10 = sum(self.holders_lst[:10]) / self.circulating_supply
+        percent_owned_by_10 = (sum(self.holders_lst[:10]) / self.circulating_supply) * 100
         print(self.holders_lst)
-        print(sum(self.holders_lst))
+        print(sum(self.holders_lst[:10]))
         print(self.circulating_supply)
         print(one_p_amount)
         print(percent_owned_by_10)
@@ -152,7 +156,9 @@ class Token:
                 'transactions': self.transactions,
                 'marketing wallet USD': self.marketing_wallet_value_usd,
                 'distributed rewards': self.distributed_rewards,
-                'circulating supply': self.circulating_supply}
+                'circulating supply': self.circulating_supply
+                'market cap': self.market_cap}
+
         with open(f'{self.address}.json', 'w') as f:
             json.dump(data, f, indent=0)
 
