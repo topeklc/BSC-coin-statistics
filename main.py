@@ -2,16 +2,20 @@ import requests
 import json
 from bscscan import BscScan
 import asyncio
-from time import sleep
+import time
 
 
 
 
 
+Bsc_api ='UEIRQK6Y6Y2GCVUMRI763UE28VEG92UDHU'
 
+def run_covalent(address, yesterday_block, now_block):
+    request = requests.get(f'https://api.covalenthq.com/v1/56/tokens/{address}/token_holders_changes/?quote-currency=USD&format=JSON&starting-block={yesterday_block}&ending-block={now_block}&key=ckey_281d2c610cc640249338d3011fe')
+    return request.json()
 
-def run_covalent(wallet):
-    request = requests.get(f'https://api.covalenthq.com/v1/56/tokens/{wallet}/token_holders/?quote-currency=USD&format=JSON&key=ckey_281d2c610cc640249338d3011fe')
+def run_covalent_yesterday_holder(address, yesterday_block):
+    request = requests.get(f'https://api.covalenthq.com/v1/56/tokens/{address}/token_holders_changes/?quote-currency=USD&format=JSON&starting-block={yesterday_block}&ending-block={yesterday_block}&key=ckey_281d2c610cc640249338d3011fe')
     return request.json()
 
 def run_query(query):  # A simple function to use requests.post to make the API call.
@@ -30,6 +34,7 @@ def run_query(query):  # A simple function to use requests.post to make the API 
 class Token:
 
     def __init__(self, address, marketing_wallet, rewards_contract, rewarded_token_contract_address, burn_address, lp_address):
+        self.now = time.time()
         self.address = address
         self.marketing_wallet_address = marketing_wallet
         self.rewards_contract_address = rewards_contract
@@ -37,6 +42,7 @@ class Token:
         self.burn_address = burn_address
         self.lp_address = lp_address
         self.holders = 0
+        self.yesterday_holders = 0
         self.transactions = 0
         self.marketing_wallet_value_usd = 0
         self.distributed_rewards = 0
@@ -45,6 +51,8 @@ class Token:
         self.holders_lst = []
         self.bnb_price = 0
         self.market_cap = 0
+        self.block_now = 0
+        self.yesterday_block = 0
 
     def get_lp_info(self):
         query = """query{
@@ -80,13 +88,13 @@ class Token:
         self.marketing_wallet_value_usd = round(res['data']['ethereum']['coinpath'][0]['amount'], 2)
 
     def get_holders_number(self):
-        holders = run_covalent(self.address)
+        self.yesterday_holders = run_covalent_yesterday_holder(self.address, self.yesterday_block)['data']['pagination']['total_count']
+        holders = run_covalent(self.address, self.yesterday_block, self.block_now)
         self.holders = holders['data']['pagination']['total_count']
-        print(holders['data']['pagination'])
         # self.holders_lst = [int(x['balance']) / (10 ** int(self.decimal)) for x in holders['data']['items'] if x['address'] != self.burn_address or x['address'] !=  self.lp_address]
         for x in holders['data']['items']:
-            if x['address'] != self.burn_address and x['address'] != self.lp_address:
-                self.holders_lst.append(int(x['balance']) / (10 ** int(self.decimal)))
+            if x['token_holder'] != self.burn_address and x['token_holder'] != self.lp_address:
+                self.holders_lst.append(int(x['next_balance']) / (10 ** int(self.decimal)))
 
 
     def get_distributed_rewards(self):
@@ -107,16 +115,23 @@ class Token:
 
 
     async def get_circulation_supply(self):
+        async with BscScan(Bsc_api) as client:
+            self.block_now = await client.get_block_number_by_timestamp(
+                timestamp=f"{int(self.now)}",
+                closest="before")
+            self.yesterday_block = await client.get_block_number_by_timestamp(
+                timestamp=f"{int(self.now - 86400)}",
+                closest="before")
 
-        async with BscScan('UEIRQK6Y6Y2GCVUMRI763UE28VEG92UDHU') as client:
+        async with BscScan(Bsc_api) as client:
             bnb_price = await client.get_bnb_last_price()
         self.bnb_price = float(bnb_price['ethusd'])
 
-        async with BscScan('UEIRQK6Y6Y2GCVUMRI763UE28VEG92UDHU') as client:
+        async with BscScan(Bsc_api) as client:
             total_supply = await client.get_total_supply_by_contract_address(
                     contract_address=f"{self.address}"
                 )
-        async with BscScan('UEIRQK6Y6Y2GCVUMRI763UE28VEG92UDHU') as client:
+        async with BscScan(Bsc_api) as client:
             decimal = await client.get_bep20_token_transfer_events_by_contract_address_paginated(
                     contract_address=f"{self.address}",
                     page=1,
@@ -153,10 +168,11 @@ class Token:
     def to_file(self):
         data = {'address': self.address,
                 'holders': self.holders,
+                '24h holders change': self.holders - self.yesterday_holders,
                 'transactions': self.transactions,
                 'marketing wallet USD': self.marketing_wallet_value_usd,
                 'distributed rewards': self.distributed_rewards,
-                'circulating supply': self.circulating_supply
+                'circulating supply': self.circulating_supply,
                 'market cap': self.market_cap}
 
         with open(f'{self.address}.json', 'w') as f:
@@ -212,4 +228,6 @@ for c in clients['clients']:
     token.synchronize_data()
     token.holders_analysis()
     print(token.market_cap)
+    print(token.now)
+
 # AssertionError

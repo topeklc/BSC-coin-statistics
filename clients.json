@@ -26,6 +26,15 @@
       "rewarded_token_contract": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
       "burn_address": "0x000000000000000000000000000000000000dead",
       "lp_address": "0xf73e979fd2d10009e0fe108feb1a7baa55d7a274"
+    },
+    {
+      "name": "Zoo CW",
+      "address": "0x1d229b958d5ddfca92146585a8711aecbe56f095",
+      "marketing_wallet": "0x",
+      "rewards_contract": "0x",
+      "rewarded_token_contract": "0x",
+      "burn_address": "0x000000000000000000000000000000000000dead",
+      "lp_address": "0x85e5889fc3ed01b4e8b56bbc717d7643294d2c31"
     }
   ]
 }
