@@ -1,31 +1,13 @@
 {
   "clients": [
     {
-      "name": "MoonWalkCoin",
-      "address": "0x6c838B6EcaB4b175B10A89de85Cf48f635184118",
-      "marketing_wallet": "0x8b99f3660622e21f2910ecca7fbe51d654a1517d",
-      "rewards_contract": "0x",
-      "rewarded_token_contract": "0x",
-      "burn_address": "0x000000000000000000000000000000000000dead",
-      "lp_address": "0x65a585dfa6c467645c3169577aa315a532af3af5"
-    },
-    {
-      "name": "Witcher",
-      "address": "0x8f01f176beb6f69964afb49d1e2a68d00a20e26e",
-      "marketing_wallet": "0x08d5DBe434Fa0F970f5D3c759D4168F077243883",
-      "rewards_contract": "0x2536fab903c6c0554144648d4717bf8770254681",
-      "rewarded_token_contract": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
-      "burn_address": "0x000000000000000000000000000000000000dead",
-      "lp_address": "0xa1dcdf1aab951d1a02379bdeffa023d8775419a9"
-   },
-    {
-      "name": "Santa Horny",
-      "address": "0x5a9bf9ecf670758c3758bf18625dfbbf40859107",
+      "name": "BABYCAKE",
+      "address": "0xdb8d30b74bf098af214e862c90e647bbb1fcc58c",
       "marketing_wallet": "0x4FA54a95418b84757F02109312eeDeB46dd5B9aa",
-      "rewards_contract": "0x095489c7bded5b3229f4a32c67cc25870a25530c",
-      "rewarded_token_contract": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
+      "rewards_contract": "0x363621cb1b32590c55f283432d91530d77cf532f",
+      "rewarded_token_contract": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
       "burn_address": "0x000000000000000000000000000000000000dead",
-      "lp_address": "0xf73e979fd2d10009e0fe108feb1a7baa55d7a274"
+      "lp_address": "0xb5e33fe13a821e55ed33c884589a804b1b4f6fd8"
     },
     {
       "name": "Zoo CW",
