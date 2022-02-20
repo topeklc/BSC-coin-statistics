@@ -5,6 +5,12 @@ import asyncio
 import time
 from dotenv import load_dotenv
 import os
+import logging
+
+"""Setup logger"""
+logging.basicConfig(filename='stats.log', level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -65,6 +71,8 @@ class Token:
         self.market_cap = 0
         self.block_now = 0
         self.yesterday_block = 0
+        self.one_p_amount = 0
+        self.percent_owned_by_10 = 0
 
     async def get_circulation_supply(self):
         """
@@ -181,10 +189,12 @@ class Token:
         one_p = [x for x in self.holders_lst if x >= self.circulating_supply / 100]
         one_p_amount = len(one_p)
         percent_owned_by_10 = (sum(self.holders_lst[:10]) / self.circulating_supply) * 100
+        self.one_p_amount = one_p_amount
+        self.percent_owned_by_10 = percent_owned_by_10
 
     def to_file(self):
         """
-        Function save results to json file.
+        Saves results to json file.
         """
         data = {'address': self.address,
                 'holders': self.holders,
@@ -193,44 +203,58 @@ class Token:
                 'marketing wallet USD': self.marketing_wallet_value_usd,
                 'distributed rewards': self.distributed_rewards,
                 'circulating supply': self.circulating_supply,
-                'market cap': self.market_cap}
+                'market cap': self.market_cap,
+                'percent owned by first 10 wallets': self.percent_owned_by_10,
+                'number of holder owned at least 1 percent': self.one_p_amount}
 
         with open(f'{self.address}.json', 'w') as f:
             json.dump(data, f, indent=0)
 
     def synchronize_data(self):
         """
-        Function runs all other functions and print in console if something goes wrong.
+        Runs all other functions and print in console and log to file if something goes wrong.
         """
         try:
             asyncio.run(self.get_circulation_supply())
         except AssertionError as error:
             print(error)
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_circulation_supply failed!')
         try:
             self.get_lp_info()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_lp_info failed!')
         try:
             self.get_transactions_number()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_transactions_number failed!')
         try:
             self.get_holders_number()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_holders_number failed!')
-        try:
+        try :
             self.get_distributed_rewards()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_distributed_rewards failed!')
         try:
             self.get_marketing_wallet_value()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('get_marketing_wallet_value failed!')
         try:
+            self.holders_analysis()
+        except Exception as e:
+            logger.error(e)
+            print('holder_analysis failed!')
+        try:
             self.to_file()
-        except:
+        except Exception as e:
+            logger.error(e)
             print('to_file failed!')
 
 
